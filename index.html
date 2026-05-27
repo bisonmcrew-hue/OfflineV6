@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0A0A0A">
+<title>Cuestionario Socioeconómico — SSAS Jalisco</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  /* ========== PALETA SSAS ========== */
+  :root{
+    --negro:#000000;
+    --purpura:#2B1B4B;
+    --magenta:#C24B96;
+    --magenta-d:#A33E7E;
+    --magenta-l:#D87BB1;
+    --naranja:#F08112;
+    --naranja-d:#C66A0A;
+    --bg:#0A0A0A;
+    --surface:#1A1A1A;
+    --surface-2:#252525;
+    --border:#2E2E2E;
+    --text:#F5F5F5;
+    --text-dim:#9CA3AF;
+    --text-faint:#6B7280;
+    --success:#22C55E;
+    --warn:#F59E0B;
+    --error:#EF4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--negro);color:var(--text);font-size:15px}
+  .hidden{display:none!important}
+  .app{max-width:780px;margin:0 auto;min-height:100vh;background:var(--bg);box-shadow:0 0 40px rgba(194,75,150,.15)}
+
+  /* Header */
+  header{background:linear-gradient(135deg,#000 0%,#1a0a14 100%);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;border-bottom:2px solid var(--magenta)}
+  header .brand{display:flex;align-items:center;gap:12px}
+  header h1{font-size:14px;font-weight:600;line-height:1.2;letter-spacing:.3px}
+  header .sub{font-size:10px;opacity:.8;color:var(--naranja);text-transform:uppercase;letter-spacing:1px;font-weight:600}
+  .net-badge{font-size:11px;padding:4px 10px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:6px;font-weight:500}
+  .net-badge.off{background:rgba(43,27,75,.4);border-color:var(--purpura)}
+  .net-badge .dot{width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success)}
+  .net-badge.off .dot{background:var(--naranja);box-shadow:0 0 8px var(--naranja)}
+
+  /* Badge de PIN en header */
+  .pin-badge{font-size:11px;padding:4px 10px;border-radius:12px;background:rgba(240,129,18,.15);border:1px solid var(--naranja);color:var(--naranja);font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:5px;cursor:pointer}
+  .pin-badge:hover{background:rgba(240,129,18,.25)}
+  .header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+
+  /* Pantalla de PIN inicial */
+  #viewPin{padding:40px 20px;max-width:380px;margin:0 auto;text-align:center}
+  #viewPin .icon-big{font-size:54px;margin-bottom:14px}
+  #viewPin h2{font-size:20px;color:var(--magenta-l);margin-bottom:8px;font-weight:600}
+  #viewPin p{font-size:13px;color:var(--text-dim);margin-bottom:24px;line-height:1.5}
+  #pinInput{font-size:32px;text-align:center;letter-spacing:8px;font-family:'Courier New',monospace;font-weight:700;color:var(--naranja);padding:14px;background:var(--surface);border:2px solid var(--magenta);border-radius:12px;width:100%;max-width:240px;margin:0 auto 14px}
+  #pinInput:focus{border-color:var(--naranja);box-shadow:0 0 0 4px rgba(240,129,18,.2);background:var(--surface-2)}
+  #pinMsg{color:var(--error);font-size:13px;min-height:18px;margin-bottom:14px;font-weight:500}
+  .pin-help{font-size:11px;color:var(--text-faint);margin-top:18px;line-height:1.5}
+
+  /* Resumen de tiempos en pantalla de éxito */
+  .tiempos-box{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;margin:14px 0;font-size:13px;text-align:left}
+  .tiempos-box .tr{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+  .tiempos-box .tr b{font-family:'Courier New',monospace;color:var(--naranja);font-size:14px}
+  .tiempos-box .tr.total{border-top:1px solid var(--border);margin-top:6px;padding-top:8px}
+  .tiempos-box .tr.total b{color:var(--magenta-l);font-size:16px}
+
+  /* Common */
+  .container{padding:16px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+  .card h2{font-size:14px;font-weight:600;color:var(--magenta-l);margin-bottom:14px;display:flex;align-items:center;gap:8px;letter-spacing:.3px}
+  label{display:block;font-size:13px;font-weight:500;margin-bottom:6px;color:var(--text)}
+  label.req::after{content:" *";color:var(--magenta-l)}
+  input[type=text],input[type=number],input[type=tel],input[type=password],select,textarea{
+    width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--surface-2);color:var(--text);font-family:inherit;
+    transition:border .2s,box-shadow .2s
+  }
+  input::placeholder,textarea::placeholder{color:var(--text-faint)}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--magenta);box-shadow:0 0 0 3px rgba(194,75,150,.2);background:#2a2a2a}
+  textarea{resize:vertical;min-height:60px}
+  select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'><path fill='%23C24B96' d='M5 8l5 5 5-5z'/></svg>");background-repeat:no-repeat;background-position:right 8px center;padding-right:32px}
+  .row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .row > *{flex:1;min-width:140px}
+  .field{margin-bottom:14px}
+  small.help{display:block;font-size:11px;color:var(--text-dim);margin-top:4px}
+
+  .check-group,.radio-group{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .check-group label,.radio-group label{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;font-weight:400;margin:0;background:var(--surface-2);
+    transition:.15s
+  }
+  .check-group label:hover,.radio-group label:hover{background:#2e2e2e;border-color:#3a3a3a}
+  .check-group input,.radio-group input{width:18px;height:18px;accent-color:var(--magenta);flex-shrink:0}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border:0;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;text-decoration:none;font-family:inherit;letter-spacing:.3px}
+  .btn-pri{background:linear-gradient(135deg,var(--magenta) 0%,var(--magenta-d) 100%);color:#fff;box-shadow:0 2px 8px rgba(194,75,150,.3)}
+  .btn-pri:hover{background:linear-gradient(135deg,var(--magenta-l) 0%,var(--magenta) 100%);box-shadow:0 4px 14px rgba(194,75,150,.45)}
+  .btn-pri:active{transform:scale(.98)}
+  .btn-sec{background:var(--surface-2);color:var(--text);border:1px solid var(--border)}
+  .btn-sec:hover{background:#2e2e2e;border-color:var(--magenta)}
+  .btn-acc{background:linear-gradient(135deg,var(--naranja) 0%,var(--naranja-d) 100%);color:#fff;box-shadow:0 2px 8px rgba(240,129,18,.3)}
+  .btn-acc:hover{box-shadow:0 4px 14px rgba(240,129,18,.45)}
+  .btn-full{width:100%}
+  .btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+
+  /* Form steps */
+  .progress{height:5px;background:var(--surface);position:relative;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--magenta),var(--naranja));transition:width .3s;box-shadow:0 0 10px rgba(240,129,18,.6)}
+  .step-info{padding:10px 16px;background:var(--surface);font-size:12px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);gap:8px}
+  .step-info > span:first-child{flex:0 0 auto}
+  .step-info > span:last-child{color:var(--naranja);font-weight:600;flex:0 0 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  .cronometro{display:inline-flex;align-items:center;gap:5px;background:rgba(194,75,150,.12);border:1px solid var(--magenta);padding:3px 8px;border-radius:12px;font-family:'Courier New',monospace;font-weight:700;color:var(--magenta-l);font-size:12px;letter-spacing:.5px;flex:0 0 auto}
+  .cron-dot{width:6px;height:6px;border-radius:50%;background:var(--magenta);animation:cronPulse 1s infinite}
+  @keyframes cronPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+
+  .nav-btns{display:flex;gap:10px;margin-top:16px}
+  .nav-btns .btn{flex:1}
+
+  /* GPS */
+  .gps-box{background:rgba(194,75,150,.08);border:1px solid var(--magenta);border-radius:8px;padding:10px 12px;font-size:12px;display:flex;align-items:center;gap:8px;color:var(--text)}
+  .gps-box b{color:var(--naranja)}
+  .gps-box.err{background:rgba(239,68,68,.15);border-color:var(--error);color:#fca5a5}
+  .gps-box .ico{font-size:18px}
+
+  /* Integrante */
+  .integrante{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
+
+  /* Prioridades */
+  .pri-item{display:flex;align-items:center;gap:8px;margin-bottom:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+  .pri-item select{width:60px;flex:0 0 60px;padding:6px}
+  .pri-item .lbl{flex:1;font-size:13px;color:var(--text);font-weight:500}
+  .pri-item input{flex:0 0 140px;font-size:12px;padding:6px 8px}
+  @media (max-width:480px){.pri-item{flex-wrap:wrap}.pri-item input{flex:1 1 100%;margin-top:6px}}
+
+  /* Calificación rango */
+  .calif-input{display:flex;align-items:center;gap:12px}
+  .calif-input input[type=range]{flex:1;accent-color:var(--magenta)}
+  .calif-input .val{font-size:22px;font-weight:700;color:var(--naranja);min-width:34px;text-align:center;font-family:'Courier New',monospace}
+
+  /* Success */
+  .success-box{text-align:center;padding:36px 20px}
+  .success-box .ok-icon{font-size:64px;margin-bottom:14px}
+  .success-box h2{color:var(--success);margin-bottom:8px}
+  .success-box .folio{font-family:'Courier New',monospace;color:var(--magenta-l);font-weight:700;font-size:18px;margin:14px 0;background:var(--surface-2);padding:10px;border-radius:8px;display:inline-block;border:1px solid var(--magenta)}
+
+  /* Pendientes */
+  .pendientes-bar{background:var(--surface-2);border-bottom:1px solid var(--border);padding:8px 16px;font-size:12px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center}
+  .pendientes-bar .badge{background:var(--naranja);color:#fff;padding:2px 8px;border-radius:10px;font-weight:700;font-size:11px}
+  .pend-item{padding:10px 12px;background:var(--surface-2);border-radius:8px;margin-bottom:6px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+  .pend-item .nom{font-weight:600;color:var(--text)}
+  .pend-item .meta{font-size:10px;color:var(--text-faint)}
+
+  /* Loader */
+  .loader-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+  .loader-overlay.show{display:flex}
+  .loader-box{background:var(--surface);border:1px solid var(--magenta);border-radius:14px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;min-width:200px}
+  .spinner{width:32px;height:32px;border:3px solid var(--surface-2);border-top-color:var(--magenta);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Toast */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--magenta);color:var(--text);padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;z-index:90;box-shadow:0 4px 20px rgba(0,0,0,.5);display:none;max-width:90%;text-align:center}
+  .toast.show{display:block;animation:slideUp .3s ease-out}
+  .toast.ok{border-color:var(--success);color:#86efac}
+  .toast.warn{border-color:var(--warn);color:#fcd34d}
+  .toast.err{border-color:var(--error);color:#fca5a5}
+  @keyframes slideUp{from{transform:translate(-50%,20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div>
+        <h1>Cuestionario Socioeconómico</h1>
+        <div class="sub">SSAS · Jalisco</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div id="pinBadge" class="pin-badge hidden" title="Click para cambiar PIN">🆔 PIN: <span id="pinTxt">----</span></div>
+      <div id="netBadge" class="net-badge"><span class="dot"></span><span id="netTxt">En línea</span></div>
+    </div>
+  </header>
+
+  <!-- Pantalla de PIN (primera pantalla) -->
+  <div id="viewPin">
+    <div class="icon-big">🆔</div>
+    <h2>Identifícate como encuestador</h2>
+    <p>Ingresa tu PIN de encuestador (4 a 6 dígitos). Este PIN se asociará a todas las encuestas que captures.</p>
+    <input type="tel" id="pinInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="••••" autocomplete="off">
+    <div id="pinMsg"></div>
+    <button class="btn btn-pri btn-full" id="btnPinOk" style="max-width:240px;margin:0 auto">Continuar →</button>
+    <div class="pin-help">El PIN quedará guardado en este dispositivo. Podrás cambiarlo después tocando el badge naranja del PIN en la barra superior.</div>
+  </div>
+
+  <!-- Barra de pendientes -->
+  <div id="pendBar" class="pendientes-bar hidden">
+    <span>📋 Pendientes de sincronizar: <span id="pendCount" class="badge">0</span></span>
+    <button class="btn btn-sec" id="btnSyncBar" style="padding:4px 10px;font-size:11px">↻ Sincronizar</button>
+  </div>
+
+  <!-- Indicador progreso -->
+  <div id="progressWrap" class="hidden">
+    <div class="progress"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+    <div class="step-info">
+      <span id="stepLbl">Paso 1 de 11</span>
+      <span id="cronometro" class="cronometro" title="Tiempo transcurrido">
+        <span class="cron-dot"></span>
+        <span id="cronTxt">00:00</span>
+      </span>
+      <span id="stepName">Inicio</span>
+    </div>
+  </div>
+
+  <!-- Vista formulario -->
+  <div id="viewForm" class="container hidden">
+    <div id="stepsHost"></div>
+    <div class="nav-btns">
+      <button class="btn btn-sec" id="btnBack">← Atrás</button>
+      <button class="btn btn-pri" id="btnNext">Siguiente →</button>
+    </div>
+  </div>
+
+  <!-- Vista de éxito -->
+  <div id="viewOk" class="container hidden">
+    <div class="success-box">
+      <div class="ok-icon">✅</div>
+      <h2>¡Encuesta guardada!</h2>
+      <p id="okMsg">Tus respuestas han sido capturadas con éxito.</p>
+      <div id="okFolio" class="folio"></div>
+      <div class="tiempos-box" id="okTiempos">
+        <div class="tr"><span>🕒 Hora de inicio</span><b id="okHoraInicio">—</b></div>
+        <div class="tr"><span>🏁 Hora de término</span><b id="okHoraTermino">—</b></div>
+        <div class="tr total"><span>⏱️ Duración total</span><b id="okDuracion">—</b></div>
+      </div>
+      <div class="nav-btns" style="justify-content:center;margin-top:24px">
+        <button class="btn btn-pri" id="btnNueva">📝 Nueva encuesta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vista de pendientes (detalle) -->
+  <div id="viewPend" class="container hidden">
+    <div class="card">
+      <h2>📋 Pendientes de sincronizar</h2>
+      <div id="pendLista" style="max-height:50vh;overflow-y:auto"></div>
+      <div class="nav-btns">
+        <button class="btn btn-pri" id="btnSync">↻ Sincronizar ahora</button>
+        <button class="btn btn-sec" id="btnVolver">← Volver</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Loader -->
+<div id="loader" class="loader-overlay">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <div id="loaderTxt">Procesando…</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+  // ============================================================
+  // 🔴 CONFIGURACIÓN — REEMPLAZA ESTA URL POR LA TUYA DE APPS SCRIPT
+  // ============================================================
+  const URL_API = "TU_URL_DE_GOOGLE_APPS_SCRIPT_EXEC";
+  // Ejemplo: "https://script.google.com/macros/s/AKfycb.../exec"
+
+  // ============================================================
+  // CATÁLOGOS (offline-first: están quemados en el HTML)
+  // Edita estas listas si quieres añadir/quitar opciones.
+  // ============================================================
+  const MUNICIPIOS = [
+    "Acatic","Acatlán de Juárez","Ahualulco de Mercado","Amacueca","Amatitán","Ameca",
+    "Arandas","Arenal (El)","Atemajac de Brizuela","Atengo","Atenguillo","Atotonilco el Alto",
+    "Atoyac","Autlán de Navarro","Ayotlán","Ayutla","Bolaños","Cabo Corrientes","Cañadas de Obregón",
+    "Casimiro Castillo","Chapala","Chimaltitán","Chiquilistlán","Cihuatlán","Cocula","Colotlán",
+    "Concepción de Buenos Aires","Cuautitlán de García Barragán","Cuautla","Cuquío","Degollado",
+    "Ejutla","Encarnación de Díaz","Etzatlán","Gómez Farías","Grullo (El)","Guachinango",
+    "Guadalajara","Hostotipaquillo","Huejúcar","Huejuquilla el Alto","Ixtlahuacán de los Membrillos",
+    "Ixtlahuacán del Río","Jalostotitlán","Jamay","Jesús María","Jilotlán de los Dolores",
+    "Jocotepec","Juanacatlán","Juchitlán","Lagos de Moreno","Limón (El)","Magdalena",
+    "Manuel M. Diéguez","Mascota","Mazamitla","Mexticacán","Mezquitic","Mixtlán",
+    "Ocotlán","Ojuelos de Jalisco","Pihuamo","Poncitlán","Puerto Vallarta","Quitupan",
+    "Salto (El)","San Cristóbal de la Barranca","San Diego de Alejandría","San Gabriel",
+    "San Ignacio Cerro Gordo","San Juan de los Lagos","San Juanito de Escobedo","San Julián",
+    "San Marcos","San Martín de Bolaños","San Martín Hidalgo","San Miguel el Alto",
+    "San Pedro Tlaquepaque","San Sebastián del Oeste","Santa María de los Ángeles","Santa María del Oro",
+    "Sayula","Tala","Talpa de Allende","Tamazula de Gordiano","Tapalpa","Tecalitlán",
+    "Tecolotlán","Techaluta de Montenegro","Tenamaxtlán","Teocaltiche","Teocuitatlán de Corona",
+    "Tepatitlán de Morelos","Tequila","Teuchitlán","Tizapán el Alto","Tlajomulco de Zúñiga",
+    "Tlaquepaque","Toliman","Tomatlán","Tonalá","Tonaya","Tonila","Totatiche","Tototlán",
+    "Tuxcacuesco","Tuxcueca","Tuxpan","Unión de San Antonio","Unión de Tula","Valle de Guadalupe",
+    "Valle de Juárez","Villa Corona","Villa Guerrero","Villa Hidalgo","Villa Purificación",
+    "Yahualica de González Gallo","Zacoalco de Torres","Zapopan","Zapotiltic","Zapotitlán de Vadillo",
+    "Zapotlán del Rey","Zapotlán el Grande","Zapotlanejo"
+  ];
+  const OCUPACIONES = [
+    "Empleado","Obrero","Comerciante","Empresario","Profesionista","Servidor público",
+    "Agricultor","Ganadero","Pescador","Ama de casa","Estudiante","Jubilado/Pensionado",
+    "Desempleado","Trabajador por cuenta propia","Otro"
+  ];
+
+  // ============================================================
+  // INDEXEDDB — cola de pendientes + config (PIN)
+  // ============================================================
+  const DB = (function(){
+    const NAME = 'ssasOffline'; const STORE_P = 'pendientes'; const STORE_C = 'config';
+    let dbP = null;
+    function open(){
+      if (dbP) return dbP;
+      dbP = new Promise(function(res, rej){
+        const req = indexedDB.open(NAME, 2);   // versión 2: añade store 'config'
+        req.onupgradeneeded = function(){
+          const db = req.result;
+          if (!db.objectStoreNames.contains(STORE_P)) db.createObjectStore(STORE_P, { keyPath: 'id' });
+          if (!db.objectStoreNames.contains(STORE_C)) db.createObjectStore(STORE_C, { keyPath: 'k' });
+        };
+        req.onsuccess = function(){ res(req.result); };
+        req.onerror = function(){ rej(req.error); };
+      });
+      return dbP;
+    }
+    function tx(store, mode){ return open().then(function(db){ return db.transaction(store, mode).objectStore(store); }); }
+    return {
+      // Pendientes
+      add:    function(item){ return tx(STORE_P,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.add(item);q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); },
+      delete: function(id){   return tx(STORE_P,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.delete(id);q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); },
+      all:    function(){     return tx(STORE_P,'readonly').then(function(s){  return new Promise(function(r,j){ const q=s.getAll();q.onsuccess=()=>r(q.result||[]);q.onerror=()=>j(q.error); }); }); },
+      clear:  function(){     return tx(STORE_P,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.clear();q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); },
+      // Config
+      cfgGet: function(k){    return tx(STORE_C,'readonly').then(function(s){  return new Promise(function(r,j){ const q=s.get(k);q.onsuccess=()=>r(q.result||null);q.onerror=()=>j(q.error); }); }); },
+      cfgSet: function(k,v){  return tx(STORE_C,'readwrite').then(function(s){ return new Promise(function(r,j){ const q=s.put({k:k,v:v});q.onsuccess=()=>r();q.onerror=()=>j(q.error); }); }); }
+    };
+  })();
+
+  // ============================================================
+  // ESTADO GLOBAL
+  // ============================================================
+  const state = {
+    pin: null,            // PIN del encuestador (string de 4-6 dígitos)
+    data: {},
+    step: 0,
+    startTime: null,      // ms (Date.now) cuando empezó la encuesta actual
+    horaInicio: null,     // string ISO local cuando empezó
+    online: navigator.onLine,
+    pendientes: 0
+  };
+
+  // ============================================================
+  // UTILIDADES
+  // ============================================================
+  const $ = function(id){ return document.getElementById(id); };
+  function esc(s){
+    return String(s==null?'':s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function uuid(){
+    if (crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){
+      const r = Math.random()*16|0, v = c==='x'?r:(r&0x3|0x8); return v.toString(16);
+    });
+  }
+  function fmtFecha(iso){
+    try {
+      return new Date(iso).toLocaleString('es-MX',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    } catch(e){ return iso; }
+  }
+  /* Devuelve hora actual en formato YYYY-MM-DD HH:MM:SS local */
+  function ahoraLocalISO(){
+    const d = new Date();
+    const pad = function(n){ return String(n).padStart(2,'0'); };
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+
+           pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+  /* "HH:MM" desde un string "YYYY-MM-DD HH:MM:SS" */
+  function soloHora(s){
+    const m = String(s||'').match(/(\d{2}:\d{2})/);
+    return m ? m[1] : '—';
+  }
+  /* Convierte segundos a "Xm Ys" o "Xh Ym Zs" */
+  function fmtDur(seg){
+    seg = Number(seg) || 0;
+    if (seg < 60) return seg + ' s';
+    const m = Math.floor(seg/60), s = seg%60;
+    if (m < 60) return s ? m+' min '+s+' s' : m+' min';
+    const h = Math.floor(m/60), mm = m%60;
+    return mm ? h+' h '+mm+' min' : h+' h';
+  }
+
+  function showLoader(txt){ $('loaderTxt').textContent = txt || 'Procesando…'; $('loader').classList.add('show'); }
+  function hideLoader(){ $('loader').classList.remove('show'); }
+  function toast(txt, tipo){
+    const t = $('toast'); t.textContent = txt; t.className = 'toast show ' + (tipo||'');
+    setTimeout(function(){ t.classList.remove('show'); }, 3500);
+  }
+
+  // ============================================================
+  // HELPERS DE FORMULARIO
+  // ============================================================
+  function card(title, innerHTML){
+    return '<div class="card"><h2>'+title+'</h2>'+innerHTML+'</div>';
+  }
+  function radioG(name, opts, sel){
+    return '<div class="radio-group">'+opts.map(function(o){
+      return '<label><input type="radio" name="'+name+'" value="'+esc(o)+'" '+(sel===o?'checked':'')+'><span>'+esc(o)+'</span></label>';
+    }).join('')+'</div>';
+  }
+  function checkG(name, opts, selArr){
+    const sel = Array.isArray(selArr) ? selArr : [];
+    return '<div class="check-group">'+opts.map(function(o){
+      return '<label><input type="checkbox" name="'+name+'" value="'+esc(o)+'" '+(sel.indexOf(o)>-1?'checked':'')+'><span>'+esc(o)+'</span></label>';
+    }).join('')+'</div>';
+  }
+  function selectCat(name, opciones, sel, placeholder){
+    const ph = placeholder || '— Selecciona —';
+    const lista = opciones.slice();
+    if (sel && lista.indexOf(sel) === -1) lista.unshift(sel);
+    return '<select name="'+name+'"><option value="">'+esc(ph)+'</option>'+
+      lista.map(function(o){ return '<option value="'+esc(o)+'" '+(sel===o?'selected':'')+'>'+esc(o)+'</option>'; }).join('')+
+      '</select>';
+  }
+  function _selectOcupInt_(idx, opciones, sel){
+    const lista = opciones.slice();
+    if (sel && lista.indexOf(sel) === -1) lista.unshift(sel);
+    return '<select name="int_ocup_'+idx+'"><option value="">— Selecciona ocupación —</option>'+
+      lista.map(function(o){ return '<option value="'+esc(o)+'" '+(sel===o?'selected':'')+'>'+esc(o)+'</option>'; }).join('')+
+      '</select>';
+  }
+  function rangoCalif(name, label, val){
+    const v = val || 5;
+    return '<div class="field"><label>'+label+'</label><div class="calif-input">'+
+      '<input type="range" min="1" max="10" name="'+name+'" data-calif="'+name+'" value="'+v+'">'+
+      '<span class="val" data-calif-val="'+name+'">'+v+'</span></div></div>';
+  }
+
+  // ============================================================
+  // PASOS DEL CUESTIONARIO
+  // ============================================================
+  const STEPS = [
+    { name:'Inicio (GPS)',        render:renderStep0 },
+    { name:'Identificación',      render:renderStep1 },
+    { name:'Datos del hogar',     render:renderStep2 },
+    { name:'Socioeconómico',      render:renderStep3 },
+    { name:'Vivienda',            render:renderStep4 },
+    { name:'Transporte',          render:renderStep5 },
+    { name:'Educación',           render:renderStep6 },
+    { name:'Salud',               render:renderStep7 },
+    { name:'Programas sociales',  render:renderStep8 },
+    { name:'Participación',       render:renderStep9 },
+    { name:'Opinión social',      render:renderStep10 }
+  ];
+
+  function renderStep(){
+    const host = $('stepsHost'); host.innerHTML = '';
+    const total = STEPS.length;
+    $('stepLbl').textContent = 'Paso ' + (state.step+1) + ' de ' + total;
+    $('stepName').textContent = STEPS[state.step].name;
+    $('progFill').style.width = (((state.step+1)/total)*100) + '%';
+    STEPS[state.step].render(host);
+    $('btnBack').disabled = state.step === 0;
+    $('btnNext').textContent = state.step === STEPS.length-1 ? 'Finalizar y enviar ✓' : 'Siguiente →';
+    window.scrollTo(0,0);
+  }
+
+  // ----- STEP 0: GPS -----
+  function renderStep0(host){
+    host.innerHTML = card('📍 Ubicación GPS', 
+      '<div id="gpsBox" class="gps-box"><span class="ico">📍</span><span id="gpsTxt">Obteniendo ubicación…</span></div>'+
+      '<button class="btn btn-sec btn-full" id="btnGps" style="margin-top:10px">Volver a intentar GPS</button>'+
+      '<small class="help" style="margin-top:8px">La ubicación es opcional pero recomendable. Si no puedes obtenerla, igual puedes continuar.</small>'
+    );
+    $('btnGps').onclick = obtenerGPS;
+    if (state.data.latitud && state.data.longitud){
+      $('gpsTxt').innerHTML = 'Lat: <b>'+state.data.latitud+'</b> · Lng: <b>'+state.data.longitud+'</b> (guardado)';
+    } else {
+      obtenerGPS();
+    }
+  }
+  function obtenerGPS(){
+    const box = $('gpsBox'), txt = $('gpsTxt');
+    if (!box || !txt) return;
+    box.classList.remove('err');
+    txt.textContent = 'Obteniendo ubicación…';
+    if (!navigator.geolocation){
+      box.classList.add('err'); txt.textContent = 'Geolocalización no soportada en este dispositivo';
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(function(pos){
+      state.data.latitud  = pos.coords.latitude.toFixed(6);
+      state.data.longitud = pos.coords.longitude.toFixed(6);
+      txt.innerHTML = 'Lat: <b>'+state.data.latitud+'</b> · Lng: <b>'+state.data.longitud+'</b>';
+    }, function(err){
+      box.classList.add('err');
+      txt.textContent = 'No se pudo obtener: ' + (err.message || 'permiso denegado');
+    }, { enableHighAccuracy:true, timeout:10000, maximumAge:60000 });
+  }
+
+  // ----- STEP 1: Identificación -----
+  function renderStep1(host){
+    const d = state.data;
+    host.innerHTML = card('👤 Datos de identificación',
+      '<div class="row">'+
+        '<div><label class="req">Nombre</label><input type="text" name="nombre" value="'+esc(d.nombre)+'"></div>'+
+        '<div><label class="req">Apellido paterno</label><input type="text" name="apPaterno" value="'+esc(d.apPaterno)+'"></div>'+
+      '</div>'+
+      '<div class="row">'+
+        '<div><label>Apellido materno</label><input type="text" name="apMaterno" value="'+esc(d.apMaterno)+'"></div>'+
+        '<div><label>CURP</label><input type="text" name="curp" maxlength="18" value="'+esc(d.curp)+'" style="text-transform:uppercase"></div>'+
+      '</div>'+
+      '<div class="field"><label>Ocupación</label>'+selectCat('ocupacion', OCUPACIONES, d.ocupacion, '— Selecciona ocupación —')+'</div>'+
+      '<div class="row">'+
+        '<div><label>Edad</label><input type="number" name="edad" min="0" max="120" value="'+esc(d.edad)+'"></div>'+
+        '<div><label>Sexo</label><select name="sexo"><option value="">—</option>'+
+          '<option '+(d.sexo==='M'?'selected':'')+'>M</option>'+
+          '<option '+(d.sexo==='F'?'selected':'')+'>F</option>'+
+          '<option '+(d.sexo==='Otro'?'selected':'')+'>Otro</option></select></div>'+
+      '</div>'
+    ) + card('🏠 Domicilio',
+      '<div class="field"><label>Domicilio (calle y número)</label><input type="text" name="domicilio" value="'+esc(d.domicilio)+'"></div>'+
+      '<div class="row">'+
+        '<div><label>No. interior</label><input type="text" name="noInt" value="'+esc(d.noInt)+'"></div>'+
+        '<div><label>C.P.</label><input type="text" name="cp" maxlength="5" value="'+esc(d.cp)+'"></div>'+
+      '</div>'+
+      '<div class="row">'+
+        '<div><label>Localidad</label><input type="text" name="localidad" value="'+esc(d.localidad)+'"></div>'+
+        '<div><label>Colonia</label><input type="text" name="colonia" value="'+esc(d.colonia)+'"></div>'+
+      '</div>'+
+      '<div class="row">'+
+        '<div><label>Área</label><input type="text" name="area" value="'+esc(d.area)+'"></div>'+
+        '<div><label>AGEB</label><input type="text" name="ageb" value="'+esc(d.ageb)+'"></div>'+
+      '</div>'+
+      '<div class="field"><label class="req">Municipio</label>'+selectCat('municipio', MUNICIPIOS, d.municipio, '— Selecciona municipio —')+'</div>'+
+      '<div class="row">'+
+        '<div><label>Teléfono fijo</label><input type="tel" name="telFijo" value="'+esc(d.telFijo)+'"></div>'+
+        '<div><label>Celular</label><input type="tel" name="celular" value="'+esc(d.celular)+'"></div>'+
+      '</div>'
+    );
+  }
+
+  // ----- STEP 2: Hogar -----
+  function renderStep2(host){
+    const d = state.data;
+    const integrantes = d.integrantes || [{},{},{}];
+    let intHTML = '';
+    for (let i=0;i<3;i++){
+      const x = integrantes[i] || {};
+      intHTML += '<div class="integrante">'+
+        '<b style="font-size:12px;color:var(--text-dim)">Integrante '+(i+1)+'</b>'+
+        '<div class="row" style="margin-top:6px">'+
+          '<div><label>Nombre</label><input type="text" name="int_nombre_'+i+'" value="'+esc(x.nombre)+'"></div>'+
+          '<div style="flex:0 0 80px"><label>Edad</label><input type="number" name="int_edad_'+i+'" value="'+esc(x.edad)+'"></div>'+
+        '</div>'+
+        '<div class="field"><label>Ocupación</label>'+_selectOcupInt_(i, OCUPACIONES, x.ocupacion)+'</div>'+
+      '</div>';
+    }
+    host.innerHTML = card('👨‍👩‍👧 Datos del hogar',
+      '<div class="row">'+
+        '<div><label>Personas que viven en el hogar</label><input type="number" name="personasHogar" min="0" value="'+esc(d.personasHogar)+'"></div>'+
+        '<div><label>Menores de 18</label><input type="number" name="menores18" min="0" value="'+esc(d.menores18)+'"></div>'+
+        '<div><label>Adultos 60+</label><input type="number" name="adultos60" min="0" value="'+esc(d.adultos60)+'"></div>'+
+      '</div>'+
+      '<small class="help">Captura información de los 3 primeros integrantes (o más, si el tiempo lo permite):</small>'+
+      '<div style="margin-top:10px">'+intHTML+'</div>'+
+      '<div class="field" style="margin-top:14px"><label>¿Cuántas personas aportan económicamente?</label>'+
+        '<input type="number" name="aportantes" min="0" value="'+esc(d.aportantes)+'"></div>'+
+      '<div class="field"><label>¿Alguna persona tiene discapacidad?</label>'+radioG('discapacidad', ['Sí','No','Prefiero no decir'], d.discapacidad)+'</div>'+
+      '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
+        '<input type="text" name="tipoDiscapacidad" value="'+esc(d.tipoDiscapacidad)+'"></div>'
+    );
+  }
+
+  // ----- STEP 3: Socioeconómico -----
+  function renderStep3(host){
+    const d = state.data;
+    host.innerHTML = card('💰 Situación socioeconómica',
+      '<div class="field"><label class="req">Ingreso mensual aproximado</label>'+
+        radioG('ingresoMensual', ['Menos de $5,000','$5,000 – $10,000','$10,000 – $15,000','Más de $15,000','No especificó'], d.ingresoMensual)+
+      '</div>'+
+      '<div class="field"><label>¿Algún integrante perdió empleo recientemente?</label>'+
+        radioG('perdioEmpleo', ['Sí','No'], d.perdioEmpleo)+
+      '</div>'
+    );
+  }
+
+  // ----- STEP 4: Vivienda -----
+  function renderStep4(host){
+    const d = state.data;
+    host.innerHTML = card('🏘 Condiciones de vivienda',
+      '<div class="field"><label>Servicios públicos con los que cuenta</label>'+
+        checkG('serviciosPublicos', ['Agua','Drenaje','Electricidad','Internet','Ninguno'], d.serviciosPublicos)+'</div>'+
+      '<div class="field"><label>Tipo de vivienda</label>'+radioG('tipoVivienda', ['Propia','Rentada','Prestada'], d.tipoVivienda)+'</div>'+
+      '<div class="field"><label>Material predominante del PISO</label>'+
+        radioG('materialPiso', ['Tierra','Cemento','Otro'], d.materialPiso)+
+        '<input type="text" name="materialPisoOtro" placeholder="Especifique si es \'Otro\'" value="'+esc(d.materialPisoOtro)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>Material predominante del TECHO</label>'+
+        radioG('materialTecho', ['Lámina','Concreto','Otro'], d.materialTecho)+
+        '<input type="text" name="materialTechoOtro" placeholder="Especifique si es \'Otro\'" value="'+esc(d.materialTechoOtro)+'" style="margin-top:6px"></div>'
+    );
+  }
+
+  // ----- STEP 5: Transporte -----
+  function renderStep5(host){
+    const d = state.data;
+    host.innerHTML = card('🚌 Transporte',
+      '<div class="field"><label>Medio de transporte que generalmente utiliza</label>'+
+        radioG('medioTransporte', ['Vehículo propio','Transporte público','Taxi / Servicio privado','Motocicleta','Otro'], d.medioTransporte)+
+        '<input type="text" name="medioTransporteOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.medioTransporteOtro)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>¿Alguna persona recibe apoyo al transporte público?</label>'+
+        radioG('apoyoTransporte', ['Sí','No'], d.apoyoTransporte)+'</div>'+
+      '<div class="field"><label>En caso afirmativo, ¿qué tipo de apoyo? (puede marcar varias)</label>'+
+        checkG('apoyoTransporteTipo', ['Estudiante','Discapacidad','Maestros','Tercera edad','Familiares de personas desaparecidas','Mujeres','Niñas y niños'], d.apoyoTransporteTipo)+'</div>'+
+      '<div class="field"><label>De utilizar transporte público, ¿con qué frecuencia?</label>'+
+        radioG('frecuenciaTransporte', ['Diario','3 a 4 veces por semana','1 o 2 veces por semana'], d.frecuenciaTransporte)+'</div>'
+    );
+  }
+
+  // ----- STEP 6: Educación -----
+  function renderStep6(host){
+    const d = state.data;
+    host.innerHTML = card('📚 Educación',
+      '<div class="field"><label>Nivel máximo de estudios de la persona jefa de familia</label>'+
+        radioG('nivelEstudios', ['Sin estudios','Primaria','Secundaria','Preparatoria','Superior'], d.nivelEstudios)+'</div>'+
+      '<div class="field"><label>¿Hay niños o jóvenes que no asisten a la escuela?</label>'+
+        radioG('ninosNoEscuela', ['Sí','No'], d.ninosNoEscuela)+'</div>'+
+      '<div class="field"><label>¿Han recibido el apoyo de mochilas, uniformes y útiles escolares gratuitos del Gobierno del Estado?</label>'+
+        radioG('apoyoEscolar', ['Sí','No'], d.apoyoEscolar)+'</div>'+
+      '<div class="field"><label>¿Cómo calificaría las condiciones de la escuela a la que asisten sus hijos?</label>'+
+        radioG('condicionEscuela', ['Buena','Regular','Mala','No aplica'], d.condicionEscuela)+'</div>'+
+      '<div class="field"><label>¿Hay estancias infantiles en su municipio?</label>'+
+        radioG('estanciasInfantiles', ['Sí','No','No sabe'], d.estanciasInfantiles)+'</div>'
+    );
+  }
+
+  // ----- STEP 7: Salud -----
+  function renderStep7(host){
+    const d = state.data;
+    host.innerHTML = card('🏥 Salud',
+      '<div class="field"><label>¿Cuenta con servicio de salud público?</label>'+
+        radioG('servicioSalud', ['Sí','No'], d.servicioSalud)+'</div>'+
+      '<div class="field"><label>En caso afirmativo, ¿cuál? (puede marcar varias)</label>'+
+        checkG('servicioSaludTipo', ['IMSS','ISSSTE','INSABI / Bienestar','Salud Jalisco','Otro'], d.servicioSaludTipo)+
+        '<input type="text" name="servicioSaludOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.servicioSaludOtro)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>¿Cómo calificaría el servicio?</label>'+
+        radioG('calificacionSalud', ['Bueno','Regular','Malo'], d.calificacionSalud)+'</div>'+
+      '<div class="field"><label>¿Le surten todo su medicamento?</label>'+
+        radioG('surteMedicamento', ['Sí','No'], d.surteMedicamento)+'</div>'+
+      '<div class="field"><label>¿Hay un hospital, clínica o centro de salud cerca de su domicilio?</label>'+
+        radioG('hospitalCerca', ['Sí','No','No sabe'], d.hospitalCerca)+'</div>'+
+      '<div class="field"><label>¿Hay personas con enfermedades crónicas en el hogar?</label>'+
+        radioG('enfCronicas', ['Sí','No'], d.enfCronicas)+'</div>'+
+      '<div class="field"><label>¿Alguna persona ha presentado problemas emocionales (tristeza, ansiedad, problemas para dormir o convivir)?</label>'+
+        radioG('problemasEmocionales', ['Sí','No','No sabe / Prefiero no decir'], d.problemasEmocionales)+'</div>'+
+      '<div class="field"><label>¿Alguien recibe atención psicológica/psiquiátrica o cree que la necesita y no la recibe?</label>'+
+        radioG('atencionPsicologica', ['Sí (la recibe)','Sí (la necesita y no la recibe)','No','No sabe / Prefiero no decir'], d.atencionPsicologica)+'</div>'
+    );
+  }
+
+  // ----- STEP 8: Programas sociales -----
+  function renderStep8(host){
+    const d = state.data;
+    host.innerHTML = card('🎁 Programas sociales',
+      '<div class="field"><label>¿Reciben algún apoyo social (cualquier nivel de gobierno u organización)?</label>'+
+        radioG('recibeApoyo', ['Sí','No'], d.recibeApoyo)+'</div>'+
+      '<div class="field"><label>En caso afirmativo, ¿cuál?</label>'+
+        '<input type="text" name="recibeApoyoCual" value="'+esc(d.recibeApoyoCual)+'"></div>'+
+      '<div class="field"><label>Nivel de satisfacción con el apoyo</label>'+
+        radioG('satisfaccionApoyo', ['Alto','Medio','Bajo'], d.satisfaccionApoyo)+'</div>'+
+      '<div class="field"><label>¿Qué tipo de apoyo considera que necesita? (puede marcar varias)</label>'+
+        checkG('tipoApoyoNecesario', ['Alimentación','Empleo','Vivienda','Salud','Educación','Otro'], d.tipoApoyoNecesario)+
+        '<input type="text" name="tipoApoyoOtro" placeholder="Especifique \'Otro\'" value="'+esc(d.tipoApoyoOtro)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>De recibir un apoyo, ¿qué preferiría?</label>'+
+        radioG('preferenciaApoyo', ['Apoyo Económico','Proyecto para emprendimiento','Ambos','Ninguno'], d.preferenciaApoyo)+'</div>'+
+      '<div class="field"><label>¿Conoce los siguientes programas sociales? (marque los que conoce)</label>'+
+        checkG('programasConocidos', [
+          'Yo Jalisco, Apoyo al Transporte (antes Mi Pasaje)',
+          'Listo Jalisco (antes RECREA)',
+          'Yo Jalisco, Apoyo a Personas Cuidadoras',
+          'Yo Jalisco, Apoyo para Estancias Infantiles',
+          'Escuela con Estrella (SEJ)',
+          'Jóvenes del Campo (SADER)',
+          'Salud y Bienestar Comunitario (DIF)'
+        ], d.programasConocidos)+
+        '<input type="text" name="programasOtro" placeholder="Otro programa" value="'+esc(d.programasOtro)+'" style="margin-top:6px"></div>'
+    );
+  }
+
+  // ----- STEP 9: Participación / Prioridades -----
+  function renderStep9(host){
+    const d = state.data;
+    const pri = d.prioridades || {};
+    const temas = ['Seguridad','Educación','Salud','Servicios Públicos (agua, luz, drenaje, calles)','Desempleo','Adicciones'];
+    let priHTML = '<small class="help">Asigne <b style="color:var(--naranja)">1 al más urgente</b> y <b style="color:var(--naranja)">6 al menor</b>. Cada número solo puede usarse una vez.</small>'+
+      '<div id="priContador" style="font-size:11px;color:var(--text-dim);margin:6px 0 10px"></div>';
+    temas.forEach(function(t){
+      const v = pri[t] || {};
+      priHTML += '<div class="pri-item">'+
+        '<select data-pri-rango="'+esc(t)+'" class="pri-select">'+
+          '<option value="">—</option>'+
+          [1,2,3,4,5,6].map(function(n){ return '<option value="'+n+'" '+(v.rango==String(n)?'selected':'')+'>'+n+'</option>'; }).join('')+
+        '</select>'+
+        '<span class="lbl">'+esc(t)+'</span>'+
+        '<input type="text" data-pri-detalle="'+esc(t)+'" placeholder="¿Cuál? (opcional)" value="'+esc(v.detalle)+'">'+
+      '</div>';
+    });
+    host.innerHTML = card('🗳 Participación y necesidades',
+      '<div class="field"><label>Orden de urgencia de atención</label>'+priHTML+'</div>'+
+      '<div class="field"><label>¿Participa en comités o actividades comunitarias?</label>'+
+        radioG('participaComites', ['Sí','No'], d.participaComites)+'</div>'+
+      '<div class="field"><label>¿Estaría dispuesto(a) a trabajar en un proyecto comunitario si recibiera apoyo?</label>'+
+        radioG('disposicionProyecto', ['Sí','No'], d.disposicionProyecto)+'</div>'+
+      '<div class="field"><label>Si la respuesta es "No", ¿por qué?</label>'+
+        '<textarea name="disposicionMotivo">'+esc(d.disposicionMotivo)+'</textarea></div>'
+    );
+    const selects = host.querySelectorAll('.pri-select');
+    selects.forEach(function(s){ s.addEventListener('change', function(){ actualizarOpcionesPrioridades(host); }); });
+    actualizarOpcionesPrioridades(host);
+  }
+  function actualizarOpcionesPrioridades(host){
+    const selects = Array.from(host.querySelectorAll('.pri-select'));
+    const usados = {};
+    selects.forEach(function(s){ if (s.value) usados[s.value] = true; });
+    selects.forEach(function(s){
+      Array.from(s.options).forEach(function(opt){
+        if (!opt.value) return;
+        const tomada = usados[opt.value] && opt.value !== s.value;
+        opt.disabled = tomada;
+        opt.style.color = tomada ? 'var(--text-faint)' : '';
+      });
+    });
+    const total = Object.keys(usados).length;
+    const cont = host.querySelector('#priContador');
+    if (cont){
+      cont.innerHTML = total === 0
+        ? 'Ninguna prioridad asignada aún'
+        : '<b style="color:var(--magenta-l)">'+total+'</b> de 6 prioridades asignadas' + (total === 6 ? ' ✓' : '');
+    }
+  }
+
+  // ----- STEP 10: Opinión social -----
+  function renderStep10(host){
+    const d = state.data;
+    host.innerHTML = card('💬 Opinión social',
+      '<div class="field"><label>¿Conoce a la persona titular de la presidencia de México?</label>'+
+        radioG('conocePresidente', ['Sí','No'], d.conocePresidente)+
+        '<input type="text" name="conocePresidenteNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conocePresidenteNombre)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>¿Conoce a la persona titular de la gubernatura de Jalisco?</label>'+
+        radioG('conoceGobernador', ['Sí','No'], d.conoceGobernador)+
+        '<input type="text" name="conoceGobernadorNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceGobernadorNombre)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>¿Conoce a la persona titular de la Secretaría de Bienestar?</label>'+
+        radioG('conoceBienestar', ['Sí','No'], d.conoceBienestar)+
+        '<input type="text" name="conoceBienestarNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceBienestarNombre)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>¿Conoce a la persona titular de la SSAS (Sistema de Asistencia Social)?</label>'+
+        radioG('conoceSSAS', ['Sí','No'], d.conoceSSAS)+
+        '<input type="text" name="conoceSSASNombre" placeholder="Nombre (si la respuesta es Sí)" value="'+esc(d.conoceSSASNombre)+'" style="margin-top:6px"></div>'+
+      '<div class="field"><label>¿Siente que el Gobierno de Jalisco está cerca de la gente?</label>'+
+        radioG('gobiernoCercano', ['Sí','No','A veces'], d.gobiernoCercano)+'</div>'
+    ) + card('⭐ Calificación del 1 al 10',
+      rangoCalif('califPresidente','Presidencia de México', d.califPresidente)+
+      rangoCalif('califGobernador','Gubernatura de Jalisco', d.califGobernador)+
+      rangoCalif('califBienestar','Secretaría de Bienestar', d.califBienestar)+
+      rangoCalif('califSSAS','Secretaría del Sistema de Asistencia Social', d.califSSAS)
+    );
+    setTimeout(function(){
+      document.querySelectorAll('input[type=range][data-calif]').forEach(function(r){
+        const valEl = document.querySelector('[data-calif-val="'+r.dataset.calif+'"]');
+        const upd = function(){ valEl.textContent = r.value; };
+        r.addEventListener('input', upd); upd();
+      });
+    }, 0);
+  }
+
+  // ============================================================
+  // RECOLECTAR DATOS DEL PASO ACTUAL
+  // ============================================================
+  function recolectar(){
+    const host = $('stepsHost');
+    host.querySelectorAll('input[type=text],input[type=number],input[type=tel],input[type=password],select,textarea,input[type=range]')
+      .forEach(function(i){
+        if (!i.name) return;
+        if (i.name.indexOf('int_') === 0){
+          const partes = i.name.split('_');
+          const k = partes[1], idx = partes[2];
+          if (!state.data.integrantes) state.data.integrantes = [{},{},{}];
+          const m = { nombre:'nombre', edad:'edad', ocup:'ocupacion' };
+          state.data.integrantes[Number(idx)][m[k]] = i.value;
+          return;
+        }
+        state.data[i.name] = i.value;
+      });
+    host.querySelectorAll('input[type=radio]').forEach(function(r){
+      if (r.checked) state.data[r.name] = r.value;
+    });
+    const groups = {};
+    host.querySelectorAll('input[type=checkbox]').forEach(function(c){
+      if (!groups[c.name]) groups[c.name] = [];
+      if (c.checked) groups[c.name].push(c.value);
+    });
+    Object.keys(groups).forEach(function(k){ state.data[k] = groups[k]; });
+    // Prioridades
+    const pri = state.data.prioridades || {};
+    host.querySelectorAll('[data-pri-rango]').forEach(function(s){
+      const k = s.dataset.priRango;
+      if (!pri[k]) pri[k] = {};
+      pri[k].rango = s.value;
+    });
+    host.querySelectorAll('[data-pri-detalle]').forEach(function(i){
+      const k = i.dataset.priDetalle;
+      if (!pri[k]) pri[k] = {};
+      pri[k].detalle = i.value;
+    });
+    if (Object.keys(pri).length) state.data.prioridades = pri;
+  }
+
+  // ============================================================
+  // VALIDACIÓN POR PASO
+  // ============================================================
+  function validarStep(){
+    const d = state.data;
+    if (state.step === 1){
+      if (!d.nombre || !d.apPaterno) { toast('Nombre y apellido paterno son obligatorios.', 'warn'); return false; }
+      if (!d.municipio) { toast('El municipio es obligatorio.', 'warn'); return false; }
+    }
+    if (state.step === 3){
+      if (!d.ingresoMensual) { toast('Selecciona el ingreso mensual aproximado.', 'warn'); return false; }
+    }
+    if (state.step === 9){
+      const pri = d.prioridades || {};
+      const usados = {};
+      const dup = [];
+      Object.keys(pri).forEach(function(t){
+        const r = pri[t] && pri[t].rango;
+        if (!r) return;
+        if (usados[r]) dup.push(r);
+        usados[r] = true;
+      });
+      if (dup.length){
+        toast('No puedes repetir números en el orden de urgencia.', 'warn');
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ============================================================
+  // CRONÓMETRO
+  // ============================================================
+  let _cronInt = null;
+  function iniciarCronometro(){
+    detenerCronometro();
+    actualizarCronometro();
+    _cronInt = setInterval(actualizarCronometro, 1000);
+  }
+  function detenerCronometro(){ if (_cronInt){ clearInterval(_cronInt); _cronInt = null; } }
+  function actualizarCronometro(){
+    if (!state.startTime) return;
+    const seg = Math.floor((Date.now() - state.startTime) / 1000);
+    const mm = String(Math.floor(seg/60)).padStart(2,'0');
+    const ss = String(seg%60).padStart(2,'0');
+    $('cronTxt').textContent = mm + ':' + ss;
+  }
+
+  // ============================================================
+  // ENVIAR ENCUESTA
+  // ============================================================
+  async function enviarEncuesta(){
+    // Calcular duración y registrar hora de término
+    const horaTermino = ahoraLocalISO();
+    if (state.startTime){
+      state.data.duracionSegundos = Math.floor((Date.now() - state.startTime) / 1000);
+    }
+    state.data.horaInicio  = state.horaInicio || '';
+    state.data.horaTermino = horaTermino;
+    detenerCronometro();
+    const registro = Object.assign({}, state.data, {
+      id: uuid(),
+      pin: state.pin || '',
+      userAgent: (navigator.userAgent || '').substring(0, 300),
+      creado_en: new Date().toISOString()
+    });
+    registro.id_cliente = registro.id;
+
+    if (state.online && URL_API && URL_API.indexOf('TU_URL') !== 0){
+      showLoader('Enviando…');
+      try {
+        const json = await enviarLote([registro]);
+        hideLoader();
+        const folio = (json.detalle && json.detalle[0] && json.detalle[0].folio) || '';
+        mostrarExito(folio, 'Encuesta enviada correctamente.', false, registro);
+      } catch (err){
+        console.warn('Falló envío online, guardando offline:', err);
+        await guardarOffline(registro);
+      }
+    } else {
+      await guardarOffline(registro);
+    }
+  }
+  async function guardarOffline(registro){
+    showLoader('Guardando localmente…');
+    try {
+      await DB.add(registro);
+      hideLoader();
+      mostrarExito('', 'Encuesta guardada localmente. Se sincronizará al recuperar conexión.', true, registro);
+      refrescarPendientes();
+    } catch (err){
+      hideLoader();
+      toast('Error al guardar: ' + err.message, 'err');
+    }
+  }
+  function mostrarExito(folio, msg, offline, registro){
+    $('viewForm').classList.add('hidden');
+    $('viewOk').classList.remove('hidden');
+    $('viewPend').classList.add('hidden');
+    $('progressWrap').classList.add('hidden');
+    $('okMsg').textContent = msg;
+    if (folio){
+      $('okFolio').textContent = 'Folio: ' + folio;
+      $('okFolio').style.display = 'inline-block';
+    } else if (offline){
+      $('okFolio').textContent = 'Pendiente de sincronizar';
+      $('okFolio').style.display = 'inline-block';
+    } else {
+      $('okFolio').style.display = 'none';
+    }
+    // Mostrar tiempos
+    if (registro){
+      $('okHoraInicio').textContent  = soloHora(registro.horaInicio);
+      $('okHoraTermino').textContent = soloHora(registro.horaTermino);
+      $('okDuracion').textContent    = fmtDur(registro.duracionSegundos);
+    }
+  }
+
+  // ============================================================
+  // SINCRONIZACIÓN
+  // ============================================================
+  async function enviarLote(registros){
+    const resp = await fetch(URL_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(registros)
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const json = await resp.json();
+    if (json.estatus !== 'ok') throw new Error(json.mensaje || 'Respuesta inválida');
+    return json;
+  }
+  let _sincronizando = false;
+  async function sincronizar(silencioso){
+    if (_sincronizando) return;
+    if (!navigator.onLine) return;
+    if (!URL_API || URL_API.indexOf('TU_URL') === 0){
+      if (!silencioso) toast('Configura URL_API en el código antes de sincronizar.', 'err');
+      return;
+    }
+    const pend = await DB.all();
+    if (!pend.length){ if (!silencioso) toast('No hay pendientes.', 'ok'); return; }
+    _sincronizando = true;
+    if (!silencioso) showLoader('Sincronizando ' + pend.length + ' registro(s)…');
+    let ok = 0, fail = 0;
+    for (const item of pend){
+      try {
+        const enviar = Object.assign({}, item);
+        enviar.id_cliente = item.id;
+        delete enviar.id;
+        await enviarLote([enviar]);
+        await DB.delete(item.id);
+        ok++;
+      } catch (err){
+        console.warn('No se pudo sincronizar', item.id, err);
+        fail++;
+        if (!navigator.onLine) break;
+      }
+    }
+    _sincronizando = false;
+    hideLoader();
+    if (ok && !fail)      toast('✓ ' + ok + ' registro(s) sincronizado(s).', 'ok');
+    else if (ok && fail)  toast('Sincronizados ' + ok + ', pendientes ' + fail + '.', 'warn');
+    else if (fail && !ok) toast('No se pudo sincronizar. Lo intentaré después.', 'err');
+    refrescarPendientes();
+  }
+
+  // ============================================================
+  // PENDIENTES UI
+  // ============================================================
+  async function refrescarPendientes(){
+    const arr = await DB.all();
+    state.pendientes = arr.length;
+    $('pendCount').textContent = arr.length;
+    $('pendBar').classList.toggle('hidden', arr.length === 0);
+    return arr;
+  }
+  async function verPendientes(){
+    const arr = await refrescarPendientes();
+    $('viewForm').classList.add('hidden');
+    $('viewOk').classList.add('hidden');
+    $('viewPend').classList.remove('hidden');
+    const lista = $('pendLista');
+    if (!arr.length){
+      lista.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:20px">Sin pendientes ✓</div>';
+      return;
+    }
+    lista.innerHTML = arr.slice().reverse().map(function(p){
+      return '<div class="pend-item">'+
+        '<div><div class="nom">'+esc(p.nombre||'(sin nombre)')+' '+esc(p.apPaterno||'')+'</div>'+
+          '<div class="meta">'+esc(p.municipio||'')+' · '+fmtFecha(p.creado_en)+'</div></div>'+
+        '<button class="btn btn-sec" data-del="'+esc(p.id)+'" style="padding:4px 8px;font-size:11px">🗑</button>'+
+      '</div>';
+    }).join('');
+    lista.querySelectorAll('[data-del]').forEach(function(b){
+      b.addEventListener('click', async function(){
+        if (!confirm('¿Borrar este registro pendiente sin enviarlo?')) return;
+        await DB.delete(b.dataset.del);
+        verPendientes();
+      });
+    });
+  }
+
+  // ============================================================
+  // NAVEGACIÓN
+  // ============================================================
+  $('btnBack').onclick = function(){
+    recolectar();
+    if (state.step > 0){ state.step--; renderStep(); }
+  };
+  $('btnNext').onclick = async function(){
+    recolectar();
+    if (!validarStep()) return;
+    if (state.step === STEPS.length - 1){
+      await enviarEncuesta();
+    } else {
+      state.step++;
+      renderStep();
+    }
+  };
+  $('btnNueva').onclick = function(){
+    iniciarEncuesta();
+  };
+  $('btnSync').onclick = function(){ sincronizar(false); };
+  $('btnSyncBar').onclick = function(){ sincronizar(false); };
+  $('btnVolver').onclick = function(){
+    $('viewPend').classList.add('hidden');
+    if (state.startTime){
+      $('viewForm').classList.remove('hidden');
+      $('progressWrap').classList.remove('hidden');
+    } else {
+      $('viewOk').classList.remove('hidden');
+    }
+  };
+  $('pendBar').addEventListener('click', function(e){
+    // Si tocan en cualquier parte de la barra menos en el botón, mostrar detalle
+    if (e.target.tagName === 'BUTTON') return;
+    verPendientes();
+  });
+
+  // ============================================================
+  // NETWORK
+  // ============================================================
+  function actualizarBadge(){
+    state.online = navigator.onLine;
+    const b = $('netBadge'), t = $('netTxt');
+    if (state.online){ b.classList.remove('off'); t.textContent = 'En línea'; }
+    else             { b.classList.add('off');    t.textContent = 'Sin conexión'; }
+  }
+  window.addEventListener('online', function(){
+    actualizarBadge();
+    toast('Conexión restaurada. Sincronizando…', 'ok');
+    sincronizar(true);
+    sincronizarAuditoria();
+  });
+  window.addEventListener('offline', function(){
+    actualizarBadge();
+    toast('Modo offline. Los envíos se guardarán localmente.', 'warn');
+  });
+
+  // ============================================================
+  // FLUJO DE PIN DEL ENCUESTADOR
+  // ============================================================
+  function _validarPIN(p){
+    return /^\d{4,6}$/.test(String(p||''));
+  }
+  async function mostrarPantallaPIN(esCambio){
+    $('viewPin').classList.remove('hidden');
+    $('viewForm').classList.add('hidden');
+    $('viewOk').classList.add('hidden');
+    $('viewPend').classList.add('hidden');
+    $('progressWrap').classList.add('hidden');
+    $('pinMsg').textContent = '';
+    const input = $('pinInput');
+    input.value = '';
+    if (esCambio){
+      $('viewPin').querySelector('h2').textContent = 'Cambiar PIN de encuestador';
+    }
+    setTimeout(function(){ input.focus(); }, 100);
+  }
+  async function aceptarPIN(){
+    const v = $('pinInput').value.trim();
+    if (!_validarPIN(v)){
+      $('pinMsg').textContent = 'El PIN debe ser de 4 a 6 dígitos.';
+      return;
+    }
+    const pinAnterior = state.pin;
+    state.pin = v;
+    await DB.cfgSet('pin', v);
+    // Actualizar el badge en header
+    actualizarBadgePIN();
+    // Auditar: nuevo PIN o cambio
+    const evt = pinAnterior ? 'PIN_CAMBIADO' : 'PIN_ESTABLECIDO';
+    const det = pinAnterior ? ('De ' + pinAnterior + ' a ' + v) : ('Nuevo PIN: ' + v);
+    enviarAuditoria(v, evt, det);
+    // Iniciar el flujo de encuesta
+    iniciarEncuesta();
+  }
+  function actualizarBadgePIN(){
+    const b = $('pinBadge'), t = $('pinTxt');
+    if (state.pin){
+      b.classList.remove('hidden');
+      t.textContent = state.pin;
+    } else {
+      b.classList.add('hidden');
+    }
+  }
+  /* Envía evento de auditoría al backend. Si no hay conexión, lo guarda como
+     pendiente de auditoría (no se pierde). */
+  async function enviarAuditoria(pin, evento, detalle){
+    const ev = {
+      pin: pin || '',
+      evento: evento,
+      detalle: detalle || '',
+      userAgent: (navigator.userAgent || '').substring(0,300),
+      timestamp: ahoraLocalISO()
+    };
+    if (!state.online || !URL_API || URL_API.indexOf('TU_URL') === 0){
+      // Encolarlo
+      const arr = (await DB.cfgGet('audit_pend')) || { v: [] };
+      arr.v.push(ev);
+      await DB.cfgSet('audit_pend', arr.v);
+      return;
+    }
+    try {
+      await fetch(URL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ _audit: true, eventos: [ev] })
+      });
+    } catch(e){
+      // Guardar como pendiente si falla
+      const cfg = (await DB.cfgGet('audit_pend')) || { v: [] };
+      const arr = Array.isArray(cfg) ? cfg : (cfg.v || []);
+      arr.push(ev);
+      await DB.cfgSet('audit_pend', arr);
+    }
+  }
+  async function sincronizarAuditoria(){
+    if (!state.online || !URL_API || URL_API.indexOf('TU_URL') === 0) return;
+    const cfg = await DB.cfgGet('audit_pend');
+    const arr = cfg && cfg.v ? cfg.v : (Array.isArray(cfg) ? cfg : []);
+    if (!arr || !arr.length) return;
+    try {
+      await fetch(URL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ _audit: true, eventos: arr })
+      });
+      await DB.cfgSet('audit_pend', []);
+    } catch(e){ /* lo reintentaremos después */ }
+  }
+  function iniciarEncuesta(){
+    state.data = {};
+    state.step = 0;
+    state.startTime = Date.now();
+    state.horaInicio = ahoraLocalISO();
+    $('viewPin').classList.add('hidden');
+    $('viewOk').classList.add('hidden');
+    $('viewPend').classList.add('hidden');
+    $('viewForm').classList.remove('hidden');
+    $('progressWrap').classList.remove('hidden');
+    iniciarCronometro();
+    renderStep();
+  }
+
+  // Listeners de la pantalla de PIN
+  $('btnPinOk').addEventListener('click', aceptarPIN);
+  $('pinInput').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') aceptarPIN();
+  });
+  // Solo permitir dígitos
+  $('pinInput').addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g, '').substring(0, 6);
+  });
+  // Click en el badge del PIN → cambiar PIN
+  $('pinBadge').addEventListener('click', function(){
+    if (confirm('¿Cambiar PIN de encuestador? La encuesta actual se descartará.')) {
+      detenerCronometro();
+      mostrarPantallaPIN(true);
+    }
+  });
+
+  // ============================================================
+  // SERVICE WORKER + ARRANQUE
+  // ============================================================
+  if ('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW no se registró:', e); });
+  }
+  (async function arranque(){
+    actualizarBadge();
+    await refrescarPendientes();
+    // ¿Hay PIN guardado?
+    const cfgPin = await DB.cfgGet('pin');
+    if (cfgPin && cfgPin.v && _validarPIN(cfgPin.v)){
+      state.pin = cfgPin.v;
+      actualizarBadgePIN();
+      iniciarEncuesta();
+    } else {
+      mostrarPantallaPIN(false);
+    }
+    if (state.online) {
+      sincronizar(true);
+      sincronizarAuditoria();
+    }
+  })();
+</script>
+</body>
+</html>
